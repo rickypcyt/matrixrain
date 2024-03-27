@@ -9,6 +9,11 @@ const MatrixRain = () => {
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [speed, setSpeed] = useState(4); // Default speed
+  const [selectedCharacters, setSelectedCharacters] = useState([
+    "Numbers",
+    "Characters",
+    "Katakana",
+  ]);
 
   const handleFontSizeChange = (size) => {
     setFontSize(size);
@@ -36,10 +41,10 @@ const MatrixRain = () => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    const katakana =
+    const Katakana =
       "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
-    const latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const nums = "0123456789";
+    const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const Numbers = "0123456789";
     let rainDrops = [];
 
     const initialize = () => {
@@ -62,15 +67,18 @@ const MatrixRain = () => {
 
       context.font = fontSize + "px monospace";
 
-      const alphabet = katakana + nums + latin;
+      let charactersToUse = "";
+      if (selectedCharacters.includes("Numbers")) charactersToUse += Numbers;
+      if (selectedCharacters.includes("Characters")) charactersToUse += Characters;
+      if (selectedCharacters.includes("Katakana")) charactersToUse += Katakana;
 
       for (let i = 0; i < rainDrops.length; i++) {
         const colorIndex = i % fontColors.length;
         const color = fontColors[colorIndex];
         context.fillStyle = color;
 
-        const text = alphabet.charAt(
-          Math.floor(Math.random() * alphabet.length)
+        const text = charactersToUse.charAt(
+          Math.floor(Math.random() * charactersToUse.length)
         );
         context.fillText(text, i * fontSize, rainDrops[i] * fontSize);
 
@@ -86,7 +94,8 @@ const MatrixRain = () => {
 
     const animate = (timestamp) => {
       const deltaTime = timestamp - lastTimestamp;
-      if (deltaTime > 1000 / (10 * speed)) { // Adjust the denominator to control speed
+      if (deltaTime > 1000 / (10 * speed)) {
+        // Adjust the denominator to control speed
         draw();
         lastTimestamp = timestamp;
       }
@@ -97,7 +106,7 @@ const MatrixRain = () => {
     animationFrameId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [fontSize, fontColors, speed]);
+  }, [fontSize, fontColors, speed, selectedCharacters]);
 
   const fontSizes = [16, 20, 24, 28, 32];
   const speeds = [4, 3, 2, 1]; // Adjust speed options as needed
@@ -112,7 +121,7 @@ const MatrixRain = () => {
             position: "absolute",
             top: "40px",
             right: "10px",
-          backgroundColor: "rgba(255, 255, 255, 0.75)",
+            backgroundColor: "rgba(255, 255, 255, 0.75)",
             border: "1px solid #ccc",
             borderRadius: "5px",
             padding: "5px",
@@ -175,6 +184,28 @@ const MatrixRain = () => {
               </label>
             ))}
           </div>
+          <div>
+            <strong>Caracteres:</strong>
+            <br />
+            {["Numbers", "Characters", "Katakana"].map((charType) => (
+              <label key={charType}>
+                <input
+                  type="checkbox"
+                  value={charType}
+                  checked={selectedCharacters.includes(charType)}
+                  onChange={() => {
+                    const updatedCharacters = selectedCharacters.includes(
+                      charType
+                    )
+                      ? selectedCharacters.filter((c) => c !== charType)
+                      : [...selectedCharacters, charType];
+                    setSelectedCharacters(updatedCharacters);
+                  }}
+                />
+                {charType}
+              </label>
+            ))}
+          </div>
         </div>
       )}
 
@@ -193,7 +224,8 @@ const MatrixRain = () => {
         }}
         onClick={() => setDropdownOpen(!dropdownOpen)}
       >
-Options      </button>
+        Options
+      </button>
     </div>
   );
 };
