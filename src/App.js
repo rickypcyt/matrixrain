@@ -1,46 +1,74 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const MatrixRain = () => {
   const canvasRef = useRef(null);
-  const katakana =
-    "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
-  const latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const nums = "0123456789";
-  let context;
-  let fontSize = 20;
-  let rainDrops = [];
+  const [fontSize, setFontSize] = useState(20);
+  const [fontColors, setFontColors] = useState(() => {
+    const storedColors = localStorage.getItem("fontColors");
+    return storedColors ? JSON.parse(storedColors) : ["#0F0"];
+  });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [speed, setSpeed] = useState(4); // Default speed
+
+  const handleFontSizeChange = (size) => {
+    setFontSize(size);
+    setDropdownOpen(false);
+  };
+
+  const handleFontColorChange = (color) => {
+    let updatedFontColors = [...fontColors];
+    const colorIndex = updatedFontColors.indexOf(color);
+    if (colorIndex !== -1) {
+      updatedFontColors.splice(colorIndex, 1);
+    } else {
+      updatedFontColors = [...updatedFontColors, color];
+    }
+    setFontColors(updatedFontColors);
+    localStorage.setItem("fontColors", JSON.stringify(updatedFontColors));
+  };
+
+  const handleSpeedChange = (selectedSpeed) => {
+    setSpeed(selectedSpeed);
+    setDropdownOpen(false);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    context = canvas.getContext("2d");
+    const context = canvas.getContext("2d");
 
-    // Función para inicializar el lienzo y las gotas de lluvia
+    const katakana =
+      "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
+    const latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const nums = "0123456789";
+    let rainDrops = [];
+
     const initialize = () => {
-      // Establecer el tamaño del lienzo
-      canvas.width = window.innerWidth-15;
+      canvas.width = window.innerWidth - 15;
       canvas.height = window.innerHeight;
 
-      // Calcular el número de gotas de lluvia basado en el ancho del lienzo
+      context.fillStyle = "#000";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
       const numRainDrops = Math.floor(canvas.width / fontSize);
 
-      // Inicializar la posición vertical de las gotas de lluvia
       for (let i = 0; i < numRainDrops; i++) {
         rainDrops[i] = Math.floor(Math.random() * canvas.height);
       }
     };
 
-    // Función para dibujar en el lienzo
     const draw = () => {
       context.fillStyle = "rgba(0, 0, 0, 0.05)";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      context.fillStyle = "#0F0";
       context.font = fontSize + "px monospace";
 
-      const alphabet =
-        katakana + nums + latin;
+      const alphabet = katakana + nums + latin;
 
       for (let i = 0; i < rainDrops.length; i++) {
+        const colorIndex = i % fontColors.length;
+        const color = fontColors[colorIndex];
+        context.fillStyle = color;
+
         const text = alphabet.charAt(
           Math.floor(Math.random() * alphabet.length)
         );
@@ -53,29 +81,121 @@ const MatrixRain = () => {
       }
     };
 
-    // Función para inicializar y comenzar la animación
-    const animate = () => {
-      initialize();
+    let animationFrameId;
+    let lastTimestamp = 0;
 
-      // Llama a la función 'draw' repetidamente para animar el lienzo
-      const loop = () => {
+    const animate = (timestamp) => {
+      const deltaTime = timestamp - lastTimestamp;
+      if (deltaTime > 1000 / (10 * speed)) { // Adjust the denominator to control speed
         draw();
-        setTimeout(loop, 50); // Change the time delay here to make it slower
-      };
-
-      loop(); // Comienza la animación
+        lastTimestamp = timestamp;
+      }
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Iniciar la animación cuando se cargue el DOM
-    animate();
+    initialize();
+    animationFrameId = requestAnimationFrame(animate);
 
-    // Limpiar el lienzo cuando el componente se desmonte
-    return () => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    };
-  }, []);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [fontSize, fontColors, speed]);
 
-  return <canvas ref={canvasRef}></canvas>;
+  const fontSizes = [16, 20, 24, 28, 32];
+  const speeds = [4, 3, 2, 1]; // Adjust speed options as needed
+
+  return (
+    <div style={{ position: "relative" }}>
+      <canvas ref={canvasRef}></canvas>
+
+      {dropdownOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "40px",
+            right: "10px",
+          backgroundColor: "rgba(255, 255, 255, 0.75)",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            padding: "5px",
+            zIndex: "100",
+          }}
+        >
+          <div>
+            <strong>Tamaño de Fuente:</strong>
+            <br />
+            {fontSizes.map((size) => (
+              <label key={size}>
+                <input
+                  type="radio"
+                  name="fontSize"
+                  value={size}
+                  checked={fontSize === size}
+                  onChange={() => handleFontSizeChange(size)}
+                />
+                {size}px
+              </label>
+            ))}
+          </div>
+          <div>
+            <strong>Color de Fuente:</strong>
+            <br />
+            {["#0F0", "#00F", "#F00", "#FF0", "#0FF"].map((color) => (
+              <label key={color}>
+                <span
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    backgroundColor: color,
+                    display: "inline-block",
+                    marginRight: "5px",
+                  }}
+                ></span>
+                <input
+                  type="checkbox"
+                  value={color}
+                  checked={fontColors.includes(color)}
+                  onChange={() => handleFontColorChange(color)}
+                />
+              </label>
+            ))}
+          </div>
+          <div>
+            <strong>Velocidad de Animación:</strong>
+            <br />
+            {speeds.map((s) => (
+              <label key={s}>
+                <input
+                  type="radio"
+                  name="speed"
+                  value={s}
+                  checked={speed === s}
+                  onChange={() => handleSpeedChange(s)}
+                />
+                {s}x
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          padding: "5px 10px",
+          fontSize: "16px",
+          cursor: "pointer",
+          border: "none",
+          borderRadius: "5px",
+          backgroundColor: "rgba(255, 255, 255, 0.75)",
+          color: "#000",
+        }}
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+      >
+Options      </button>
+    </div>
+  );
 };
 
 export default MatrixRain;

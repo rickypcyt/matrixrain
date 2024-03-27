@@ -1,3 +1,7 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
 body {
   margin: 0;
   padding: 0;
@@ -20,23 +24,24 @@ body {
 }
 
 .matrix-char {
-  color: lime;
   font-family: 'Courier New', Courier, monospace;
   font-size: 1vw;
   /* Use percentage unit instead of pixels */
-  opacity: 0.1;
+  opacity: 1;
+  /* Set opacity to 1 to make characters fully visible */
 }
 
-@keyframes fadeIn {
-  0% {
-    opacity: 0.1;
-  }
-
-  100% {
-    opacity: 1;
-  }
+.matrix-char:nth-child(1) {
+  animation-delay: 0s;
+  /* No delay for the first character */
 }
 
-.matrix-char {
-  animation: fadeIn 0.5s ease-out;
+.matrix-char:nth-child(2) {
+  animation-delay: 0.00s;
+  /* Add a small delay for the second character */
+}
+
+/* Aumenta el retraso basado en la posición vertical del carácter */
+.matrix-column .matrix-char:nth-child(n+2) {
+  animation-delay: calc((var(--row-index) * 0.05s) + 0.05s);
 }
