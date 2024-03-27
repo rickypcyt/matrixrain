@@ -8,7 +8,7 @@ const MatrixRain = () => {
     return storedColors ? JSON.parse(storedColors) : ["#0F0"];
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [speed, setSpeed] = useState(4); // Default speed
+  const [speed, setSpeed] = useState(3);
   const [selectedCharacters, setSelectedCharacters] = useState([
     "Numbers",
     "Characters",
@@ -69,7 +69,8 @@ const MatrixRain = () => {
 
       let charactersToUse = "";
       if (selectedCharacters.includes("Numbers")) charactersToUse += Numbers;
-      if (selectedCharacters.includes("Characters")) charactersToUse += Characters;
+      if (selectedCharacters.includes("Characters"))
+        charactersToUse += Characters;
       if (selectedCharacters.includes("Katakana")) charactersToUse += Katakana;
 
       for (let i = 0; i < rainDrops.length; i++) {
@@ -95,7 +96,6 @@ const MatrixRain = () => {
     const animate = (timestamp) => {
       const deltaTime = timestamp - lastTimestamp;
       if (deltaTime > 1000 / (10 * speed)) {
-        // Adjust the denominator to control speed
         draw();
         lastTimestamp = timestamp;
       }
@@ -105,11 +105,20 @@ const MatrixRain = () => {
     initialize();
     animationFrameId = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(animationFrameId);
+    const handleResize = () => {
+      initialize();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+    };
   }, [fontSize, fontColors, speed, selectedCharacters]);
 
   const fontSizes = [16, 20, 24, 28, 32];
-  const speeds = [4, 3, 2, 1]; // Adjust speed options as needed
+  const speeds = [1, 2, 3, 4];
 
   return (
     <div style={{ position: "relative" }}>
@@ -129,7 +138,7 @@ const MatrixRain = () => {
           }}
         >
           <div>
-            <strong>Tamaño de Fuente:</strong>
+            <strong>Font Size:</strong>
             <br />
             {fontSizes.map((size) => (
               <label key={size}>
@@ -145,31 +154,34 @@ const MatrixRain = () => {
             ))}
           </div>
           <div>
-            <strong>Color de Fuente:</strong>
-            <br />
-            {["#0F0", "#00F", "#F00", "#FF0", "#0FF"].map((color) => (
-              <label key={color}>
-                <span
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "50%",
-                    backgroundColor: color,
-                    display: "inline-block",
-                    marginRight: "5px",
-                  }}
-                ></span>
-                <input
-                  type="checkbox"
-                  value={color}
-                  checked={fontColors.includes(color)}
-                  onChange={() => handleFontColorChange(color)}
-                />
-              </label>
-            ))}
-          </div>
+  <strong>Font Color:</strong>
+  <br />
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    {["#0F0", "#00F", "#F00", "#FF0", "#0FF"].map((color) => (
+      <label key={color} style={{ marginBottom: "5px" }}>
+        <span
+          style={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            backgroundColor: color,
+            display: "inline-block",
+            marginRight: "5px",
+          }}
+        ></span>
+        <input
+          type="checkbox"
+          value={color}
+          checked={fontColors.includes(color)}
+          onChange={() => handleFontColorChange(color)}
+        />
+      </label>
+    ))}
+  </div>
+</div>
+
           <div>
-            <strong>Velocidad de Animación:</strong>
+            <strong>Animation Speed:</strong>
             <br />
             {speeds.map((s) => (
               <label key={s}>
@@ -185,7 +197,7 @@ const MatrixRain = () => {
             ))}
           </div>
           <div>
-            <strong>Caracteres:</strong>
+            <strong>Characters:</strong>
             <br />
             {["Numbers", "Characters", "Katakana"].map((charType) => (
               <label key={charType}>
