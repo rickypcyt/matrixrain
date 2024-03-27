@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: black;
+}
+
+.matrix-rain {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.matrix-column {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 1vw;
+  /* Use percentage unit instead of pixels */
+  overflow: hidden;
+}
+
+.matrix-char {
+  color: lime;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1vw;
+  /* Use percentage unit instead of pixels */
+  opacity: 0.1;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0.1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.matrix-char {
+  animation: fadeIn 0.5s ease-out;
+}
