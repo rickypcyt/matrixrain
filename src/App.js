@@ -1,25 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
 
 const MatrixRain = () => {
+  // Referencia al canvas
   const canvasRef = useRef(null);
+
+  // Estado para el tamaño de la fuente
   const [fontSize, setFontSize] = useState(20);
+
+  // Estado para los colores de la fuente
   const [fontColors, setFontColors] = useState(() => {
     const storedColors = localStorage.getItem("fontColors");
     return storedColors ? JSON.parse(storedColors) : ["#0F0"];
   });
+
+  // Estado para controlar si el menú desplegable está abierto o cerrado
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Estado para la velocidad de la animación
   const [speed, setSpeed] = useState(3);
+
+  // Estado para los tipos de caracteres seleccionados
   const [selectedCharacters, setSelectedCharacters] = useState([
     "Numbers",
     "Characters",
     "Katakana",
   ]);
 
+  // Función para manejar el cambio de tamaño de fuente
   const handleFontSizeChange = (size) => {
     setFontSize(size);
     setDropdownOpen(false);
   };
 
+  // Función para manejar el cambio de color de fuente
   const handleFontColorChange = (color) => {
     let updatedFontColors = [...fontColors];
     const colorIndex = updatedFontColors.indexOf(color);
@@ -32,21 +45,25 @@ const MatrixRain = () => {
     localStorage.setItem("fontColors", JSON.stringify(updatedFontColors));
   };
 
+  // Función para manejar el cambio de velocidad de animación
   const handleSpeedChange = (selectedSpeed) => {
     setSpeed(selectedSpeed);
     setDropdownOpen(false);
   };
 
+  // Efecto para inicializar el canvas y la animación
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
+    // Caracteres para la animación
     const Katakana =
       "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
     const Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const Numbers = "0123456789";
     let rainDrops = [];
 
+    // Función para inicializar el canvas y los elementos de la animación
     const initialize = () => {
       canvas.width = window.innerWidth - 15;
       canvas.height = window.innerHeight;
@@ -61,6 +78,7 @@ const MatrixRain = () => {
       }
     };
 
+    // Función para dibujar la animación
     const draw = () => {
       context.fillStyle = "rgba(0, 0, 0, 0.05)";
       context.fillRect(0, 0, canvas.width, canvas.height);
@@ -93,6 +111,7 @@ const MatrixRain = () => {
     let animationFrameId;
     let lastTimestamp = 0;
 
+    // Función para animar la matriz
     const animate = (timestamp) => {
       const deltaTime = timestamp - lastTimestamp;
       if (deltaTime > 1000 / (10 * speed)) {
@@ -102,28 +121,35 @@ const MatrixRain = () => {
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    // Inicializar canvas y comenzar animación
     initialize();
     animationFrameId = requestAnimationFrame(animate);
 
+    // Manejar cambio de tamaño de ventana
     const handleResize = () => {
       initialize();
     };
 
     window.addEventListener("resize", handleResize);
 
+    // Limpieza del efecto
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
     };
   }, [fontSize, fontColors, speed, selectedCharacters]);
 
+  // Tamaños de fuente disponibles
   const fontSizes = [16, 20, 24, 28, 32];
+
+  // Velocidades de animación disponibles
   const speeds = [1, 2, 3, 4];
 
   return (
     <div style={{ position: "relative" }}>
       <canvas ref={canvasRef}></canvas>
 
+      {/* Menú desplegable para opciones */}
       {dropdownOpen && (
         <div
           style={{
@@ -154,32 +180,31 @@ const MatrixRain = () => {
             ))}
           </div>
           <div>
-  <strong>Font Color:</strong>
-  <br />
-  <div style={{ display: "flex", flexDirection: "column" }}>
-    {["#0F0", "#00F", "#F00", "#FF0", "#0FF"].map((color) => (
-      <label key={color} style={{ marginBottom: "5px" }}>
-        <span
-          style={{
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            backgroundColor: color,
-            display: "inline-block",
-            marginRight: "5px",
-          }}
-        ></span>
-        <input
-          type="checkbox"
-          value={color}
-          checked={fontColors.includes(color)}
-          onChange={() => handleFontColorChange(color)}
-        />
-      </label>
-    ))}
-  </div>
-</div>
-
+            <strong>Font Color:</strong>
+            <br />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {["#0F0", "#00F", "#F00", "#FF0", "#0FF"].map((color) => (
+                <label key={color} style={{ marginBottom: "5px" }}>
+                  <span
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      backgroundColor: color,
+                      display: "inline-block",
+                      marginRight: "5px",
+                    }}
+                  ></span>
+                  <input
+                    type="checkbox"
+                    value={color}
+                    checked={fontColors.includes(color)}
+                    onChange={() => handleFontColorChange(color)}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
           <div>
             <strong>Animation Speed:</strong>
             <br />
@@ -221,6 +246,7 @@ const MatrixRain = () => {
         </div>
       )}
 
+      {/* Botón para abrir/cerrar el menú desplegable */}
       <button
         style={{
           position: "absolute",
